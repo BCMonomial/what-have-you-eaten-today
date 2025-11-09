@@ -1,0 +1,1 @@
+ALTER TABLE `meals` ADD `category` text;

@@ -14,6 +14,7 @@ export const meals = sqliteTable('meals', {
     // 基本信息
     name: text('name').notNull(),
     mealDate: integer('meal_date', { mode: 'timestamp' }).notNull(),
+    category: text('category', { enum: ['早餐', '午餐', '晚餐', '零食', '其他'] }),
     location: text('location'),
 
     // 评价
