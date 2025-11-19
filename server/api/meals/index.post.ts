@@ -6,7 +6,7 @@ export default defineEventHandler(async (event) => {
     // 1. 从请求体中读取数据
     const body = await readBody(event);
 
-    console.log('📥 接收到的数据:', JSON.stringify(body, null, 2));
+    console.log('接收到的数据:', JSON.stringify(body, null, 2));
 
     // 2. 进行数据校验
     if (!body.name || !body.mealDate) {
