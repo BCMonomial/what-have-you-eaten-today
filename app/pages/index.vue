@@ -1,7 +1,51 @@
 <script setup>
+import { ref, computed, onMounted } from 'vue'
+
 // 页面元数据
 useHead({
     title: '今天吃什么'
+})
+
+// 获取用餐记录数据
+const meals = ref([])
+const isLoading = ref(true)
+const error = ref(null)
+
+onMounted(async () => {
+    try {
+        const data = await $fetch('/api/meals')
+        meals.value = data
+    } catch (error) {
+        console.error('获取数据失败', error)
+    } finally {
+        isLoading.value = false
+    }
+})
+
+// 计算统计数据
+const stats = computed(() => {
+    // 总记录数
+    const totalCount = meals.value.length
+
+    // 平均评分
+    const ratingsWithValue = meals.value.filter(m => m.rating)
+    const averageRating = ratingsWithValue.length > 0
+        ? (ratingsWithValue.reduce((sum, m) => sum + m.rating, 0) / ratingsWithValue.length).toFixed(1)
+        : 0
+
+    // 本周用餐数
+    const now = new Date()
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const weeklyCount = meals.value.filter(m => {
+        const mealDate = new Date(m.mealDate)
+        return mealDate >= weekAgo && mealDate <= now
+    }).length
+
+    return {
+        totalCount,
+        averageRating,
+        weeklyCount
+    }
 })
 </script>
 
@@ -15,7 +59,9 @@ useHead({
                 </div>
                 <div class="stat-info">
                     <div class="stat-label">总记录数</div>
-                    <div class="stat-value">-</div>
+                    <div class="stat-value">
+                        {{ isLoading ? '-' : stats.totalCount }}
+                    </div>
                 </div>
             </div>
 
@@ -25,7 +71,9 @@ useHead({
                 </div>
                 <div class="stat-info">
                     <div class="stat-label">平均评分</div>
-                    <div class="stat-value">-</div>
+                    <div class="stat-value">
+                        {{ isLoading ? '-' : stats.averageRating }}
+                    </div>
                 </div>
             </div>
 
@@ -35,7 +83,9 @@ useHead({
                 </div>
                 <div class="stat-info">
                     <div class="stat-label">本周用餐</div>
-                    <div class="stat-value">-</div>
+                    <div class="stat-value">
+                        {{ isLoading ? '-' : stats.weeklyCount }}
+                    </div>
                 </div>
             </div>
         </div>
