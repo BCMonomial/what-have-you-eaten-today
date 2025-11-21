@@ -3,11 +3,13 @@ CREATE TABLE `meals` (
 	`user_id` integer NOT NULL,
 	`name` text NOT NULL,
 	`meal_date` integer NOT NULL,
+	`category` text,
 	`location` text,
+	`image` text,
 	`rating` real,
 	`rating_notes` text,
 	`remarks` text,
-	`created_at` integer DEFAULT (CURRENT_TIMESTAMP),
+	`created_at` integer DEFAULT (unixepoch()),
 	FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON UPDATE no action ON DELETE no action
 );
 --> statement-breakpoint

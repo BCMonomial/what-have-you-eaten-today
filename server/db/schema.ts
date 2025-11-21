@@ -28,5 +28,5 @@ export const meals = sqliteTable('meals', {
     remarks: text('remarks'), // 总备注
 
     // 创建时间戳
-    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(CURRENT_TIMESTAMP)`),
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 });

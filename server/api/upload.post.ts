@@ -47,7 +47,7 @@ export default defineEventHandler(async (event) => {
         // 处理并保存图片
         const imagePath = await processAndSaveImage(file.data, file.filename)
 
-        console.log('✅ 上传成功:', imagePath)
+        console.log('上传成功:', imagePath)
 
         return {
             success: true,
@@ -56,7 +56,7 @@ export default defineEventHandler(async (event) => {
         }
 
     } catch (error: any) {
-        console.error('❌ 上传失败:', error)
+        console.error('上传失败:', error)
 
         throw createError({
             statusCode: error.statusCode || 500,
