@@ -1,6 +1,7 @@
 import { db } from '~~/server/db';
 import { meals } from '~~/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { deleteImage } from '../../utils/imageProcessor'
 
 export default defineEventHandler(async (event) => {
     try {
@@ -46,6 +47,19 @@ export default defineEventHandler(async (event) => {
             });
         }
 
+        // 👇 新增：如果更新了图片，删除旧图片
+        if (body.image) {
+            // 先查询旧记录
+            const oldMeal = await db.query.meals.findFirst({
+                where: eq(meals.id, id),
+            })
+
+            // 如果有旧图片且与新图片不同，删除旧图片
+            if (oldMeal?.image && oldMeal.image !== body.image) {
+                await deleteImage(oldMeal.image)
+            }
+        }
+
         // 更新数据
         const updatedMeal = await db
             .update(meals)
@@ -57,6 +71,7 @@ export default defineEventHandler(async (event) => {
                 rating: rating,
                 ratingNotes: body.ratingNotes || null,
                 remarks: body.remarks || null,
+                image: body.image || null, 
             })
             .where(eq(meals.id, id))
             .returning();

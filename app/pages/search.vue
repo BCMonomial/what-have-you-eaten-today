@@ -382,6 +382,7 @@ const stats = computed(() => {
                 <div v-else-if="searchResults.length > 0" class="results-grid">
                     <div v-for="meal in searchResults" :key="meal.id" class="result-card"
                         @click="navigateTo(`/meals/${meal.id}/edit`)">
+                        <img v-if="meal.image" :src="meal.image" alt="餐食图片" class="card-image" />
                         <div class="card-header">
                             <h3 class="meal-name">{{ meal.name }}</h3>
                             <span class="category-badge" :style="{ backgroundColor: getCategoryColor(meal.category) }">
@@ -755,6 +756,14 @@ const stats = computed(() => {
 
 .card-action-btn:hover {
     background: #bbdefb;
+}
+
+.card-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+    margin: -20px -20px 16px -20px;
 }
 
 /* ==================== 动画 ==================== */

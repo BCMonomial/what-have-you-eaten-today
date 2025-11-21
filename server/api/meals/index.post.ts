@@ -67,6 +67,7 @@ export default defineEventHandler(async (event) => {
       rating: ratingValue,
       ratingNotes: body.ratingNotes || null,
       remarks: body.remarks || null,
+      image: body.image || null,
       userId: tempUserId,
     };
 

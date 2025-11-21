@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 
 useHead({
@@ -13,7 +13,8 @@ const formData = ref({
     location: '',
     rating: null,
     ratingNotes: '',
-    remarks: ''
+    remarks: '',
+    image: null as string | null,
 })
 
 // 分类选项
@@ -42,6 +43,94 @@ function validateForm() {
     return true
 }
 
+// 图片相关状态
+const imageFile = ref<File | null>(null)
+const imagePreview = ref<string | null>(null)
+const imagePath = ref<string | null>(null)
+const isUploading = ref(false)
+const uploadInfo = ref('')
+
+// 处理图片选择
+async function handleImageSelect(event: Event) {
+    const target = event.target as HTMLInputElement
+    const file = target.files?.[0]
+
+    if (!file) return
+
+    // 验证文件类型
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+    if (!validTypes.includes(file.type)) {
+        errorMessage.value = '只支持 JPG、PNG、WEBP 格式的图片'
+        return
+    }
+
+    // 验证文件大小（最大 10MB）
+    if (file.size > 10 * 1024 * 1024) {
+        errorMessage.value = '文件大小不能超过 10MB'
+        return
+    }
+
+    const originalSize = formatFileSize(file.size)
+    console.log('原始图片大小:', originalSize)
+
+    isUploading.value = true
+    uploadInfo.value = `正在上传 ${originalSize}...`
+
+    try {
+        // 创建 FormData
+        const formData = new FormData()
+        formData.append('file', file)
+
+        // 上传到服务器
+        const response = await $fetch<{
+            success: boolean
+            path: string
+            message: string
+        }>('/api/upload', {
+            method: 'POST',
+            body: formData
+        })
+
+        console.log('上传成功:', response)
+
+        // 保存文件路径
+        imagePath.value = response.path
+
+        // 显示预览（使用服务器返回的路径）
+        imagePreview.value = response.path
+        imageFile.value = file
+
+        uploadInfo.value = `已上传 ${originalSize}`
+    } catch (error: any) {
+        console.error('上传失败:', error)
+        errorMessage.value = error.data?.statusMessage || '上传失败，请重试'
+    } finally {
+        isUploading.value = false
+    }
+}
+
+// 删除图片
+function removeImage() {
+    imagePath.value = null
+    imagePreview.value = null
+    imageFile.value = null
+    uploadInfo.value = ''
+
+    // 清空 input
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement
+    if (input) input.value = ''
+}
+
+// 格式化文件大小
+function formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 B'
+    const k = 1024
+    const sizes = ['B', 'KB', 'MB', 'GB']
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+}
+
+
 // 提交表单
 async function handleSubmit() {
     errorMessage.value = ''
@@ -57,7 +146,8 @@ async function handleSubmit() {
             method: 'POST',
             body: {
                 ...formData.value,
-                rating: formData.value.rating ? parseFloat(formData.value.rating) : null
+                rating: formData.value.rating ? parseFloat(formData.value.rating) : null,
+                image: imagePath.value
             }
         })
 
@@ -161,6 +251,44 @@ function handleCancel() {
                             placeholder="其他想记录的信息..."></textarea>
                     </div>
 
+                    <!-- 图片上传 -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <Icon name="mdi:image" size="18" />
+                            图片
+                        </label>
+
+                        <!-- 上传按钮 -->
+                        <div v-if="!imagePreview" class="image-upload-area">
+                            <input type="file" accept="image/jpeg,image/jpg,image/png,image/webp"
+                                @change="handleImageSelect" class="image-input" id="image-input"
+                                :disabled="isUploading" />
+                            <label for="image-input" class="image-upload-label">
+                                <Icon name="mdi:cloud-upload" size="48" />
+                                <p>点击上传图片</p>
+                                <p class="upload-hint">支持 JPG、PNG、WEBP，最大 10MB，自动压缩至 2MB</p>
+                            </label>
+                        </div>
+
+                        <!-- 图片预览 -->
+                        <div v-else class="image-preview-container">
+                            <img :src="imagePreview" alt="预览" class="image-preview" />
+                            <div class="image-info">
+                                <span class="upload-info">{{ uploadInfo }}</span>
+                                <button type="button" @click="removeImage" class="remove-image-btn">
+                                    <Icon name="mdi:close" />
+                                    删除图片
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 上传中提示 -->
+                        <div v-if="isUploading" class="uploading-hint">
+                            <Icon name="mdi:loading" class="spinning" />
+                            {{ uploadInfo }}
+                        </div>
+                    </div>
+
                     <!-- 按钮组 -->
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary" :disabled="isSubmitting">
@@ -257,6 +385,96 @@ function handleCancel() {
     display: flex;
     gap: 12px;
     margin-top: 8px;
+}
+
+/* ==================== 图片上传 ==================== */
+.image-upload-area {
+    position: relative;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    padding: 40px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+}
+
+.image-upload-area:hover {
+    border-color: #3498db;
+    background: #f8f9fa;
+}
+
+.image-input {
+    display: none;
+}
+
+.image-upload-label {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    color: #6c757d;
+}
+
+.image-upload-label p {
+    margin: 0;
+}
+
+.upload-hint {
+    font-size: 12px;
+    color: #adb5bd;
+}
+
+.image-preview-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.image-preview {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.image-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.remove-image-btn {
+    padding: 6px 12px;
+    background: #ffebee;
+    color: #f44336;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.remove-image-btn:hover {
+    background: #ffcdd2;
+}
+
+.uploading-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #e3f2fd;
+    color: #2196f3;
+    border-radius: 6px;
+    font-size: 14px;
 }
 
 .btn {

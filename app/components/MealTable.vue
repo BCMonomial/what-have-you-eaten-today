@@ -121,6 +121,16 @@ async function deleteMeal(id) {
         console.error(e)
     }
 }
+
+const modalImage = ref(null)
+
+function showImageModal(image) {
+    modalImage.value = image
+}
+
+function closeImageModal() {
+    modalImage.value = null
+}
 </script>
 
 <template>
@@ -150,6 +160,7 @@ async function deleteMeal(id) {
                             <Icon v-if="sortKey === 'name'"
                                 :name="sortOrder === 'asc' ? 'mdi:arrow-up' : 'mdi:arrow-down'" class="sort-icon" />
                         </th>
+                        <th>图片</th>
                         <th @click="toggleSort('category')" class="sortable">
                             类别
                             <Icon v-if="sortKey === 'category'"
@@ -175,6 +186,11 @@ async function deleteMeal(id) {
                     <tr v-for="meal in sortedMeals" :key="meal.id" class="table-row">
                         <td class="meal-name">
                             <strong>{{ meal.name }}</strong>
+                        </td>
+                        <td class="image-cell">
+                            <img v-if="meal.image" :src="meal.image" alt="餐食图片" class="meal-thumbnail"
+                                @click.stop="showImageModal(meal.image)" />
+                            <span v-else class="no-image">-</span>
                         </td>
                         <td>
                             <span class="category-badge" :style="{ backgroundColor: getCategoryColor(meal.category) }">
@@ -241,6 +257,15 @@ async function deleteMeal(id) {
                 <Icon name="mdi:plus" />
                 添加第一条记录
             </button>
+        </div>
+
+        <div v-if="modalImage" class="image-modal" @click="closeImageModal">
+            <div class="modal-content">
+                <button class="modal-close" @click="closeImageModal">
+                    <Icon name="mdi:close" size="24" />
+                </button>
+                <img :src="modalImage" alt="大图" class="modal-image" />
+            </div>
         </div>
     </div>
 </template>
@@ -480,6 +505,77 @@ async function deleteMeal(id) {
 .delete-button:hover {
     background: #ffcdd2;
     transform: scale(1.1);
+}
+
+/* ==================== 图片单元格 ==================== */
+.image-cell {
+    width: 80px;
+    padding: 8px !important;
+}
+
+.meal-thumbnail {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.meal-thumbnail:hover {
+    transform: scale(1.1);
+}
+
+.no-image {
+    color: #adb5bd;
+}
+
+/* ==================== 图片模态框 ==================== */
+.image-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    cursor: pointer;
+}
+
+.modal-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+.modal-image {
+    max-width: 100%;
+    max-height: 90vh;
+    object-fit: contain;
+}
+
+.modal-close {
+    position: absolute;
+    top: -40px;
+    right: 0;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.modal-close:hover {
+    background: #f44336;
+    color: white;
 }
 
 /* ==================== 空状态 ==================== */

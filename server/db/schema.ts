@@ -17,6 +17,9 @@ export const meals = sqliteTable('meals', {
     category: text('category', { enum: ['早餐', '午餐', '晚餐', '零食', '其他'] }),
     location: text('location'),
 
+    // 图片
+    image: text('image'), // 图片路径
+
     // 评价
     rating: real('rating'),  // 评价分数，使用 real 类型，支持 4.5 这样的分数
     ratingNotes: text('rating_notes'), // 评价正文
