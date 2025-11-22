@@ -1,8 +1,7 @@
-📄 app/pages/explore.vue:
 <script setup>
 import { ref, onMounted } from 'vue'
 
-useHead({ title: '发现美食' })
+useHead({ title: '发现食物' })
 
 // 不需要 auth 中间件，因为这里可能允许游客访问（取决于后端 explore API 的逻辑）
 // definePageMeta({ middleware: 'guest' }) 
@@ -58,15 +57,17 @@ function getCategoryColor(category) {
     return colors[category] || '#9e9e9e'
 }
 
-// 图片模态框逻辑
-const modalImage = ref(null)
-function showImage(url) {
-    if (url) modalImage.value = url
+// 选中的餐食
+const selectedMeal = ref(null)
+
+// 打开详情
+function openDetail(meal) {
+    selectedMeal.value = meal
 }
 </script>
 
 <template>
-    <MainLayout title="发现美食">
+    <MainLayout title="发现食物">
         <div class="explore-container">
 
             <!-- 顶部简介 -->
@@ -95,10 +96,10 @@ function showImage(url) {
 
             <!-- 内容网格 -->
             <div v-else class="masonry-grid">
-                <div v-for="meal in meals" :key="meal.id" class="meal-card">
+                <div v-for="meal in meals" :key="meal.id" class="meal-card" @click="openDetail(meal)">
 
                     <!-- 1. 图片区域 -->
-                    <div class="card-image-wrapper" @click="showImage(meal.image)">
+                    <div class="card-image-wrapper">
                         <img v-if="meal.image" :src="meal.image" loading="lazy" alt="美食图片" class="card-image" />
 
                         <!-- 无图片时的占位 -->
@@ -154,13 +155,11 @@ function showImage(url) {
             </div>
         </div>
 
-        <!-- 图片预览模态框 -->
-        <div v-if="modalImage" class="image-modal" @click="modalImage = null">
-            <button class="modal-close">
-                <Icon name="mdi:close" />
-            </button>
-            <img :src="modalImage" class="modal-content-img" @click.stop />
-        </div>
+        <MealDetailModal 
+            v-if="selectedMeal" 
+            :meal="selectedMeal" 
+            @close="selectedMeal = null" 
+        />
 
     </MainLayout>
 </template>

@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
         whereCondition = eq(meals.visibility, 'all')
     }
 
-    // 联表查询 (需要显示是谁吃的)
+    // 联表查询 
     const result = await db.select({
         id: meals.id,
         name: meals.name,
@@ -29,6 +29,9 @@ export default defineEventHandler(async (event) => {
         category: meals.category,
         rating: meals.rating,
         visibility: meals.visibility,
+        location: meals.location,
+        ratingNotes: meals.ratingNotes,
+        remarks: meals.remarks,
         username: users.username, 
     })
     .from(meals)
