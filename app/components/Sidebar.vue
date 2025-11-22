@@ -15,6 +15,7 @@ const userButtons = computed(() => {
     if (user.value) {
         // 已登录
         const btns = [
+            { id: 'profile', icon: 'mdi:account', label: user.value.username, path: '/profile' },
             { id: 'logout', icon: 'mdi:logout', label: '退出登录', action: 'logout' }
         ]
         // 如果是管理员，在前面插入管理按钮
