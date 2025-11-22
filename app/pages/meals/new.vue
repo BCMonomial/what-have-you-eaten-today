@@ -1,4 +1,9 @@
 <script setup lang="ts">
+
+definePageMeta({
+    middleware: 'auth' 
+})
+
 import { ref } from 'vue'
 
 useHead({

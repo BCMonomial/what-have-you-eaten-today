@@ -1,10 +1,11 @@
 import { db } from '~~/server/db';
 import { meals } from '~~/server/db/schema';
-import { eq } from 'drizzle-orm';
-import { deleteImage } from '../../utils/imageProcessor'
+import { eq, and } from 'drizzle-orm';
+import { deleteImage } from '~~/server/utils/imageProcessor'
 
 export default defineEventHandler(async (event) => {
     try {
+        const userId = getUserFromSession(event)
         // 获取 URL 参数中的 id
         const id = parseInt(event.context.params?.id || '0');
 
@@ -47,11 +48,14 @@ export default defineEventHandler(async (event) => {
             });
         }
 
-        // 👇 新增：如果更新了图片，删除旧图片
+        // 图片处理
         if (body.image) {
             // 先查询旧记录
             const oldMeal = await db.query.meals.findFirst({
-                where: eq(meals.id, id),
+                where: and(
+                    eq(meals.id, id),
+                    eq(meals.userId, userId)
+                ),
             })
 
             // 如果有旧图片且与新图片不同，删除旧图片
@@ -71,15 +75,18 @@ export default defineEventHandler(async (event) => {
                 rating: rating,
                 ratingNotes: body.ratingNotes || null,
                 remarks: body.remarks || null,
-                image: body.image || null, 
+                image: body.image || null,
             })
-            .where(eq(meals.id, id))
+            .where(and(
+                eq(meals.id, id),
+                eq(meals.userId, userId)
+            ))
             .returning();
 
         if (!updatedMeal || updatedMeal.length === 0) {
             throw createError({
                 statusCode: 404,
-                statusMessage: '记录不存在',
+                statusMessage: '记录不存在或无权修改',
             });
         }
 
@@ -89,6 +96,8 @@ export default defineEventHandler(async (event) => {
     } catch (e: any) {
         console.error('更新失败:', e);
 
+        if (e.statusCode === 401) throw e;
+        
         throw createError({
             statusCode: e.statusCode || 500,
             statusMessage: e.statusMessage || '更新失败',

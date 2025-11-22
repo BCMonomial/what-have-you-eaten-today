@@ -1,6 +1,10 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 
+// 引入 user 状态
+const { user } = useUser()
+const isGuest = ref(false)
+
 // 用餐记录数据
 const meals = ref([])
 const isLoading = ref(true)
@@ -12,12 +16,24 @@ const sortOrder = ref('desc') // 'asc' 或 'desc'
 
 // 获取数据
 onMounted(async () => {
+    // 3. 检查登录状态：如果未登录，直接设为访客模式，不请求 API
+    if (!user.value) {
+        isLoading.value = false
+        isGuest.value = true
+        return
+    }
+
     try {
         const data = await $fetch('/api/meals')
         meals.value = data
     } catch (e) {
-        error.value = '加载数据失败'
-        console.error(e)
+        // 捕获 401 错误：如果 Token 过期或无效，也转为访客模式
+        if (e.statusCode === 401 || e.response?.status === 401) {
+            isGuest.value = true
+        } else {
+            error.value = '加载数据失败'
+            console.error(e)
+        }
     } finally {
         isLoading.value = false
     }
@@ -139,6 +155,17 @@ function closeImageModal() {
         <div v-if="isLoading" class="loading">
             <Icon name="mdi:loading" class="spinner-icon" />
             <p>加载中...</p>
+        </div>
+
+        <!-- 访客状态 -->
+        <div v-else-if="isGuest" class="guest-state">
+            <Icon name="mdi:account-lock-outline" size="64" class="guest-icon" />
+            <h3>请先登录</h3>
+            <p>登录后即可查看和管理用餐记录</p>
+            <button @click="navigateTo('/login')" class="login-button">
+                <Icon name="mdi:login" />
+                登录
+            </button>
         </div>
 
         <!-- 错误状态 -->
@@ -299,6 +326,48 @@ function closeImageModal() {
     100% {
         transform: rotate(360deg);
     }
+}
+
+/* ==================== 访客状态 ==================== */
+.guest-state {
+    padding: 80px 40px;
+    text-align: center;
+    background: #f8f9fa; 
+    color: #2c3e50;
+}
+
+.guest-icon {
+    color: #3498db; 
+    margin-bottom: 16px;
+}
+
+.guest-state h3 {
+    margin: 0 0 8px 0;
+    font-size: 24px;
+    color: #2c3e50;
+}
+
+.guest-state p {
+    margin: 0 0 24px 0;
+    color: #6c757d;
+}
+
+.login-button {
+    padding: 12px 32px;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.login-button:hover {
+    background: #2980b9;
 }
 
 /* ==================== 错误状态 ==================== */

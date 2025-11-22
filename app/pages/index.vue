@@ -1,6 +1,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 
+// 引入 user 状态
+const { user } = useUser()
+
 // 页面元数据
 useHead({
     title: '今天吃什么'
@@ -12,6 +15,10 @@ const isLoading = ref(true)
 const error = ref(null)
 
 onMounted(async () => {
+    if (!user.value) {
+        isLoading.value = false
+        return
+    }
     try {
         const data = await $fetch('/api/meals')
         meals.value = data

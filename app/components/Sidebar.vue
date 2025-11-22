@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue'
 
+const { user, logout } = useUser()
+
 // 功能按钮列表
 const functionButtons = [
     { id: 'home', icon: 'mdi:home', label: '首页', path: '/' },
@@ -8,12 +10,30 @@ const functionButtons = [
     { id: 'search', icon: 'mdi:magnify', label: '搜索', path: '/search' }
 ]
 
-// 个人管理按钮
-const userButtons = [
-    { id: 'profile', icon: 'mdi:account', label: '个人资料', path: '/profile' },
-    { id: 'settings', icon: 'mdi:cog', label: '设置', path: '/settings' },
-    { id: 'logout', icon: 'mdi:logout', label: '退出登录', action: 'logout' }
-]
+// 个人状态按钮，动态计算
+const userButtons = computed(() => {
+    if (user.value) {
+        // 已登录
+        const btns = [
+            { id: 'logout', icon: 'mdi:logout', label: '退出登录', action: 'logout' }
+        ]
+        // 如果是管理员，在前面插入管理按钮
+        if (user.value.role === 'admin') {
+            btns.unshift({ 
+                id: 'admin', 
+                icon: 'mdi:shield-account', 
+                label: '系统管理', 
+                path: '/admin' 
+            })
+        }    
+        return btns
+    } else {
+        // 未登录
+        return [
+            { id: 'login', icon: 'mdi:login', label: '登录', path: '/login' }
+        ]
+    }
+})
 
 // 当前悬浮的按钮
 const hoveredButton = ref(null)
@@ -21,13 +41,10 @@ const hoveredButton = ref(null)
 // 处理按钮点击
 function handleClick(button) {
     if (button.action === 'logout') {
-        // 处理退出登录
         if (confirm('确定要退出登录吗？')) {
-            console.log('退出登录')
-            // 这里后续添加退出逻辑
+            logout()
         }
     } else if (button.path) {
-        // 导航到对应页面
         navigateTo(button.path)
     }
 }

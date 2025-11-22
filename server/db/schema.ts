@@ -3,7 +3,11 @@ import { sqliteTable, text, integer, real} from 'drizzle-orm/sqlite-core';
 
 export const users = sqliteTable('users', {
     id: integer('id').primaryKey({ autoIncrement: true }),
+    email: text('email').unique(), 
     username: text('username').notNull().unique(),
+    password: text('password').notNull(),
+    role: text('role', { enum: ['admin', 'user'] }).default('user').notNull(),
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 });
 
 

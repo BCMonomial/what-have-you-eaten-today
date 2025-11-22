@@ -3,6 +3,8 @@ import { meals } from '~~/server/db/schema';
 
 export default defineEventHandler(async (event) => {
   try {
+    const userId = getUserFromSession(event)
+
     // 1. 从请求体中读取数据
     const body = await readBody(event);
 
@@ -15,9 +17,6 @@ export default defineEventHandler(async (event) => {
         statusMessage: '缺少必要的字段 (name, mealDate)',
       });
     }
-
-    // 3. 暂时硬编码 userId
-    const tempUserId = 1;
 
     // 处理日期转换，添加错误处理
     let mealDateObj;
@@ -68,7 +67,7 @@ export default defineEventHandler(async (event) => {
       ratingNotes: body.ratingNotes || null,
       remarks: body.remarks || null,
       image: body.image || null,
-      userId: tempUserId,
+      userId: userId,
     };
 
     console.log('准备插入的数据:', JSON.stringify(insertData, null, 2));
