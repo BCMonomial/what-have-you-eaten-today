@@ -1,75 +1,66 @@
-# Nuxt Minimal Starter
+# 今天吃什么 (What Have You Eaten Today) 
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+一个基于 Nuxt.js 4 的饮食记录平台。用户可以记录每日餐食、上传图片、评分，并控制记录的隐私权限（私有/公开）。系统包含完整的用户认证、权限管理及后台管理功能。
 
-## Setup
+该项目是我的 Vue.js 与 Nuxt.js 练习项目。
 
-Make sure to install dependencies:
+## 核心功能
 
+### 1. 用户系统
+- **注册/登录**: 支持账号密码注册，密码加密存储。
+- **个人资料**: 修改邮箱及重置密码。
+- **权限控制**: 只有登录用户才能操作自己的数据。
+
+### 2. 饮食记录 
+- **记录美食**: 上传图片（自动压缩）、填写类别、评分、备注、地点及具体时间。
+- **图片管理**: 编辑或删除记录时，自动清理服务器上的废弃图片文件。
+- **高级搜索**: 支持按日期范围、评分、关键词、分类进行多维度筛选。
+
+### 3. 社交与隐私
+- **三级隐私权限**:
+  - **仅自己可见** （默认）
+  - **仅登录用户可见**
+  - **全站公开** （游客可见）
+- **发现食物**: 展示全站公开的食物动态，查看他人分享。
+
+### 4. 管理员后台 
+- **自动授权**: 系统首位注册用户自动成为**管理员**。
+- **用户管理**: 查看用户列表、强制重置用户密码、级联删除用户（连同数据和图片）。
+- **全局设置**: 可一键关闭/开启全站注册功能（仅允许管理员手动创建账号）。
+
+## 快速开始
+
+### 环境要求
+- Node.js v24.11.0+
+- npm 或 pnpm
+
+### 1. 安装依赖
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
-
+### 2. 初始化数据库
 ```bash
-# npm
+npx drizzle-kit migrate
+```
+根据 Schema 自动生成 `sqlite.db` 文件。
+
+### 3. 启动开发服务器
+```bash
 npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
 ```
+访问 `http://localhost:3000` 即可看到应用。
 
-## Production
+## 部署指南
 
-Build the application for production:
+1.  **构建项目**:
+    ```bash
+    npm run build
+    ```
+    构建产物位于 `.output/` 目录。
 
-```bash
-# npm
-npm run build
+2.  **服务器运行 (使用 PM2)**:
+    ```bash
+    pm2 start .output/server/index.mjs --name "what-have-you-eaten-today"
+    ```
 
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
