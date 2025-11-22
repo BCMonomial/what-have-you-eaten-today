@@ -81,13 +81,17 @@ function toggleSort(key) {
     }
 }
 
-// 格式化日期
+// 格式化日期 (增加时间显示)
 function formatDate(date) {
     const d = new Date(date)
     const year = d.getFullYear()
     const month = String(d.getMonth() + 1).padStart(2, '0')
     const day = String(d.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
+    const hours = String(d.getHours()).padStart(2, '0')
+    const minutes = String(d.getMinutes()).padStart(2, '0')
+    
+    // 显示为：2023-11-22 12:30
+    return `${year}-${month}-${day} ${hours}:${minutes}`
 }
 
 // 格式化时间（显示相对时间）

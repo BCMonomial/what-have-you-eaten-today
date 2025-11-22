@@ -50,7 +50,7 @@ watch(() => props.initialData, (newVal) => {
         // 1. 先处理日期格式 (YYYY-MM-DD)
         let formattedDate = ''
         if (newVal.mealDate) {
-            formattedDate = formatDateForInput(newVal.mealDate)
+            formattedDate = formatDateTimeForInput(newVal.mealDate)
         }
 
         // 2. 构造完整的表单对象，覆盖默认值
@@ -91,13 +91,19 @@ const visibilityOptions = [
 ]
 
 // 格式化日期辅助函数
-function formatDateForInput(date: Date | string): string {
+function formatDateTimeForInput(date: Date | string): string {
+    if (!date) return ''
     const d = new Date(date)
     if (isNaN(d.getTime())) return ''
+    
     const year = d.getFullYear()
     const month = String(d.getMonth() + 1).padStart(2, '0')
     const day = String(d.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
+    const hours = String(d.getHours()).padStart(2, '0')
+    const minutes = String(d.getMinutes()).padStart(2, '0')
+    
+    // datetime-local 需要 YYYY-MM-DDTHH:mm 格式
+    return `${year}-${month}-${day}T${hours}:${minutes}`
 }
 
 // 格式化文件大小
@@ -170,7 +176,7 @@ function handleSubmit() {
         return
     }
     if (!formData.value.mealDate) {
-        errorMessage.value = '请选择用餐日期'
+        errorMessage.value = '请选择用餐时间'
         return
     }
 
@@ -215,9 +221,9 @@ function handleSubmit() {
             <div class="form-group">
                 <label class="form-label required">
                     <Icon name="mdi:calendar" size="18" />
-                    用餐日期
+                    用餐时间
                 </label>
-                <input v-model="formData.mealDate" type="date" class="form-input" required />
+                <input v-model="formData.mealDate" type="datetime-local" class="form-input" required />
             </div>
 
             <!-- 用餐地点 -->
