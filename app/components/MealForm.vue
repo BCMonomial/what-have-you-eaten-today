@@ -14,6 +14,7 @@ const props = defineProps({
             rating: null,
             ratingNotes: '',
             remarks: '',
+            visibility: 'self',
             image: null
         })
     },
@@ -35,21 +36,43 @@ const emit = defineEmits(['submit', 'cancel', 'delete'])
 // 表单数据（复制一份 props 以便修改）
 const formData = ref({ ...props.initialData })
 
+// 图片相关状态
+const imagePreview = ref<string | null>(props.initialData.image || null)
+const imagePath = ref<string | null>(props.initialData.image || null)
+const isUploading = ref(false)
+const uploadInfo = ref('')
+
 // 监听 initialData 变化（主要用于编辑页异步加载数据后的更新）
 watch(() => props.initialData, (newVal) => {
     if (newVal) {
-        formData.value = { ...newVal }
-        // 如果有图片，设置预览
+        console.log('收到初始数据:', newVal) // 调试用
+        
+        // 1. 先处理日期格式 (YYYY-MM-DD)
+        let formattedDate = ''
+        if (newVal.mealDate) {
+            formattedDate = formatDateForInput(newVal.mealDate)
+        }
+
+        // 2. 构造完整的表单对象，覆盖默认值
+        // 注意：这里显式地设置 mealDate，防止被 ...newVal 中的原始对象覆盖
+        formData.value = {
+            ...newVal,
+            mealDate: formattedDate, // 使用格式化后的日期字符串
+            // 确保数值类型正确
+            rating: newVal.rating ? parseFloat(newVal.rating) : null
+        }
+
+        // 3. 处理图片预览
         if (newVal.image) {
             imagePreview.value = newVal.image
             imagePath.value = newVal.image
-        }
-        // 格式化日期
-        if (newVal.mealDate) {
-            formData.value.mealDate = formatDateForInput(newVal.mealDate)
+        } else {
+            // 如果新数据没有图片，必须清空之前的状态
+            imagePreview.value = null
+            imagePath.value = null
         }
     }
-}, { deep: true })
+}, { deep: true, immediate: true }) // 加上 immediate 确保组件加载时如果已有数据也能触发
 
 // 内部状态
 const errorMessage = ref('')
@@ -61,11 +84,11 @@ const categoryOptions = [
     { label: '其他', value: '其他' }
 ]
 
-// 图片相关状态
-const imagePreview = ref<string | null>(props.initialData.image || null)
-const imagePath = ref<string | null>(props.initialData.image || null)
-const isUploading = ref(false)
-const uploadInfo = ref('')
+const visibilityOptions = [
+    { label: '仅自己可见', value: 'self', icon: 'mdi:lock' },
+    { label: '仅登录用户', value: 'member', icon: 'mdi:account-group' },
+    { label: '全站公开', value: 'all', icon: 'mdi:earth' }
+]
 
 // 格式化日期辅助函数
 function formatDateForInput(date: Date | string): string {
@@ -235,7 +258,20 @@ function handleSubmit() {
                 <textarea v-model="formData.remarks" class="form-textarea" rows="2"
                     placeholder="其他想记录的信息..."></textarea>
             </div>
-
+            <!-- 可见性 -->
+            <div class="form-group">
+                <label class="form-label">
+                    <Icon name="mdi:eye" size="18" /> 可见性
+                </label>
+                <div class="visibility-options">
+                    <label v-for="opt in visibilityOptions" :key="opt.value" class="radio-label">
+                        <input type="radio" v-model="formData.visibility" :value="opt.value" />
+                        <span class="radio-text">
+                            <Icon :name="opt.icon" size="16" /> {{ opt.label }}
+                        </span>
+                    </label>
+                </div>
+            </div>
             <!-- 图片上传 -->
             <div class="form-group">
                 <label class="form-label">
@@ -366,6 +402,19 @@ function handleSubmit() {
     display: flex;
     gap: 12px;
     margin-top: 8px;
+}
+
+.visibility-options {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
 }
 
 /* 图片上传样式 */
