@@ -1,0 +1,1 @@
+ALTER TABLE `meals` ADD `visibility` text DEFAULT 'self' NOT NULL;

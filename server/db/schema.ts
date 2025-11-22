@@ -31,6 +31,19 @@ export const meals = sqliteTable('meals', {
     // 备注
     remarks: text('remarks'), // 总备注
 
+    // 可见性
+    // 'all' = 全站公开 (游客可见)
+    // 'member' = 仅登录用户可见
+    // 'self' = 仅自己可见 (默认)
+    visibility: text('visibility', { enum: ['all', 'member', 'self'] }).default('self').notNull(),
+
     // 创建时间戳
     createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
+});
+
+export const settings = sqliteTable('settings', {
+    key: text('key').primaryKey(), // 例如 'allow_register'
+    value: text('value').notNull(), // 存储 JSON 字符串或普通字符串
+    description: text('description'), // 设置项描述
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(unixepoch())`),
 });

@@ -6,6 +6,7 @@ const { user, logout } = useUser()
 // 功能按钮列表
 const functionButtons = [
     { id: 'home', icon: 'mdi:home', label: '首页', path: '/' },
+    { id: 'explore', icon: 'mdi:compass', label: '发现', path: '/explore' },
     { id: 'add', icon: 'mdi:plus-circle', label: '添加记录', path: '/meals/new' },
     { id: 'search', icon: 'mdi:magnify', label: '搜索', path: '/search' }
 ]

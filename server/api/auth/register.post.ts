@@ -1,9 +1,17 @@
 import { db } from '~~/server/db'
-import { users } from '~~/server/db/schema'
+import { users, settings } from '~~/server/db/schema'
 import { eq, or, sql } from 'drizzle-orm'
 import bcrypt from 'bcryptjs'
 
 export default defineEventHandler(async (event) => {
+    // 检查注册开关
+    const registerSetting = await db.select().from(settings).where(eq(settings.key, 'allow_register')).get()
+    const isRegistrationAllowed = registerSetting ? registerSetting.value === 'true' : true
+
+    if (!isRegistrationAllowed) {
+        throw createError({ statusCode: 403, statusMessage: '系统已关闭公开注册' })
+    }
+
     const body = await readBody(event)
     const { username, password, email } = body
 
