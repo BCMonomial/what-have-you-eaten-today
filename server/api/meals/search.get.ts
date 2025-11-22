@@ -4,13 +4,15 @@ import { and, like, gte, lte, eq, sql } from 'drizzle-orm';
 
 export default defineEventHandler(async (event) => {
     try {
+        const userId = getUserFromSession(event);
         // 获取查询参数
+
         const query = getQuery(event);
 
         console.log('搜索参数:', query);
 
         // 构建查询条件数组
-        const conditions = [];
+        const conditions = [eq(meals.userId, userId)];
 
         // 1. 关键词搜索（餐食名称或地点）
         if (query.keyword) {
@@ -78,6 +80,8 @@ export default defineEventHandler(async (event) => {
             results: searchResults,
         };
     } catch (e: any) {
+        if (e.statusCode === 401) throw e;
+
         console.error('搜索失败:', e);
 
         throw createError({

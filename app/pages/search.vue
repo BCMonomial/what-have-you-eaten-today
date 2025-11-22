@@ -1,6 +1,10 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 
+definePageMeta({
+    middleware: 'auth'
+})
+
 useHead({
     title: '搜索用餐记录'
 })
